@@ -1,0 +1,60 @@
+mport pandas as pd
+import openpyxl 
+# Read the active range of data from the specified sheet
+input_file1_path='c:\\Dev\\Python\\ExcelVBA\\fn1.xlsx'
+input_file1_sheet_name ='Sheet1'
+input_file2_path='c:\\Dev\\Python\\ExcelVBA\\fn2.xlsx'
+input_file3_path='c:\\Dev\\Python\\ExcelVBA\\fn3.xlsx'
+input_approver_path1='c:\\Dev\\Python\\ExcelVBA\\Approver.xlsx'
+output_file1_path='c:\\Dev\\Python\\ExcelVBA\\O1.xlsx'
+input_file2_sheet_name = 'Sheet1'  # Replace with the name of your sheet
+input_file3_sheet_name ='Sheet1'
+input_approver_sheet_name ='Sheet1'
+
+output_file1_sheet1='app'
+output_file1_sheet2='fixeddata'
+df1 = pd.read_excel(input_file1_path, sheet_name=input_file1_sheet_name, usecols=None, skiprows=None)
+df2 = pd.read_excel(input_file2_path, sheet_name=input_file2_sheet_name, usecols=None, skiprows=None)
+df3 = pd.read_excel(input_file3_path, sheet_name=input_file3_sheet_name, usecols=None, skiprows=None)
+dfApprover = pd.read_excel(input_approver_path1, sheet_name=input_approver_sheet_name, usecols=None, skiprows=None)
+existing_data = pd.read_excel(output_file1_path, sheet_name=None, usecols=None, skiprows=None)
+
+df2[ ['LastName', 'FirstName'] ]= df2['OwnerNameP'].str.split(',',n=1, expand=True)
+df6 = df3.iloc[:, [2,4,5]].head()
+df6.insert(1, '', '')
+df6.insert(4, 'Add or Remove', 'ADD')
+# Create a new DataFrame
+new_data = pd.DataFrame({'A': [41, 2, 3], 'B': [44, 5, 6]})
+merged_df = pd.merge(df2, df3, on='OpKey', how='inner')
+dfApprover = pd.concat([dfApprover] * len(merged_df), ignore_index=True)
+Newmerged_df = pd.concat([merged_df, dfApprover], axis=1)
+final_df = Newmerged_df[['OpDsc_x', 'OpDsc_y','LastName','FirstName','EmpId','EmpType','AppFirstName','AppLastName','AppEmpNum','AppEmpType']]
+
+# Write the new DataFrame to a new sheet in the existing file
+with pd.ExcelWriter(output_file1_path, mode='a', engine='openpyxl', if_sheet_exists='overlay') as writer:
+    Newmerged_df.to_excel(writer, sheet_name='New Sheet', startrow=0, header=True, index=False)
+
+# Write part of the new DataFrame to an existing sheet in the file
+existing_sheet = existing_data['fixeddata']
+start_row = existing_sheet.shape[0] + 2  # Start writing after the existing data and an empty row
+
+with pd.ExcelWriter(output_file1_path, mode='a', engine='openpyxl', if_sheet_exists='overlay') as writer:
+    final_df.to_excel(writer, sheet_name='app', startrow=4, header=False, index=False)
+
+with pd.ExcelWriter(output_file1_path, mode='a', engine='openpyxl', if_sheet_exists='overlay') as writer:
+    final_df.to_excel(writer, sheet_name='fixeddata', startrow=4, header=False, index=False)
+
+with pd.ExcelWriter(output_file1_path, mode='a', engine='openpyxl', if_sheet_exists='overlay') as writer:
+    df6.to_excel(writer, sheet_name='six', startrow=4, header=False, index=False)
+
+    #for other tab
+melted = pd.melt(df1, id_vars='Des', value_vars=['OID', 'OName', 'AID1', 'Aname2'])
+    # Drop duplicate rows based on 'FlexCenter', 'value', and 'variable'
+dfresultSix = melted.drop_duplicates(subset=['Des', 'value', 'variable'], keep='first')
+# Rename the columns
+dfresultSix.columns = ['Des', 'Employee ID', 'Employee Name']
+#dfresultSix.insert(1, '', '')
+#dfresultSix.insert(8, 'Add or Remove', 'ADD')
+dfresultSix[ ['LastName', 'FirstName'] ]= dfresultSix['Employee Name'].str.split(',',n=1, expand=True)
+with pd.ExcelWriter(output_file1_path, mode='a', engine='openpyxl', if_sheet_exists='overlay') as writer:
+    dfresultSix.to_excel(writer, sheet_name='five', startrow=4, header=False, index=False)
